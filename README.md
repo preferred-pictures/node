@@ -16,23 +16,23 @@ yarn add @preferred-pictures/client
 The package needs to be configured with your account's identity and
 secret key, which is availabe in the Preferred.pictures interface.
 
-```
-const PreferredPictures = require('@preferred-pictures/client');
+```js
+const PreferredPictures = require("@preferred-pictures/client");
 const pp = new PreferredPictures({
-    // Obtain your account's values by
-    // signing into Preferred.pictures.
+  // Obtain your account's values by
+  // signing into Preferred.pictures.
 
-    identity: "test-identity",
-    secretKey: "secret123456",
+  identity: "test-identity",
+  secretKey: "secret123456",
 });
 
 const choiceUrl = pp.createChooseUrl({
-    choices: ["red", "green", "blue"],
-    tournament: "testing",
-    // The ttl for the action to be taken.
-    ttl: 60 * 10,
-    prefix: "https://example.com/jacket-",
-    suffix: ".jpg",
+  choices: ["red", "green", "blue"],
+  tournament: "testing",
+  // The ttl for the action to be taken.
+  ttl: 60 * 10,
+  prefix: "https://example.com/jacket-",
+  suffix: ".jpg",
 });
 
 // The url returned will appear to be something like:

@@ -8,7 +8,7 @@ describe("createChooseUrl", () => {
   it("should return the expected query fields", () => {
     const p = new PreferredPictures({
       identity: "test",
-      secret_key: "test123456",
+      secretKey: "test123456",
     });
 
     const u = p.createChooseUrl({
@@ -23,7 +23,6 @@ describe("createChooseUrl", () => {
     expect(u).to.match(/^https:\/\/api\.preferred\.pictures\/choose-url/);
 
     const parsed = url.parse(u);
-
     expect(parsed.query).to.not.be.undefined;
     if (parsed.query != null) {
       const query_fields = qs.parse(parsed.query);
