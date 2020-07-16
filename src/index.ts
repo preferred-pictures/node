@@ -31,7 +31,7 @@ interface ClientConstructorParameters {
 type ChooseUrlParameters = {
   /** A list of choices of which a selection should be made */
   choices: string[];
-  /** The tournament of which this choice is a part */
+  /** The tournament of which this API call is a part */
   tournament: string;
   /**
    * The amount of time in seconds after a choice is made that an action
