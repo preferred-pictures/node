@@ -14,7 +14,7 @@ yarn add @preferred-pictures/client
 ## Usage
 
 The package needs to be configured with your account's identity and
-secret key, which is availabe in the Preferred.pictures interface.
+secret key, which is available in the Preferred.pictures interface.
 
 ```js
 const PreferredPictures = require("@preferred-pictures/client");
