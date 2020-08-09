@@ -6,13 +6,19 @@ import * as qs from "querystring";
 const HMAC_ALGO = "sha256";
 
 interface ChooseUrlRequestParams {
-  choices?: string;
+  "choices[]"?: string[];
+  choices_prefix?: string;
+  choices_suffix?: string;
   expiration: string;
-  prefix?: string;
-  suffix?: string;
   tournament: string;
   ttl?: string;
   uid: string;
+  "destinations[]"?: string[];
+  destinations_prefix?: string;
+  destinations_suffix?: string;
+  go?: string;
+  json?: string;
+  limited_signature?: string;
 }
 
 interface ClientConstructorParameters {
@@ -22,7 +28,7 @@ interface ClientConstructorParameters {
   secretKey: string;
   /** The maximum number of choices to allow, default 35 */
   maxChoices?: number;
-  /** The endpoint of the API to use, default is https://api.preferred.pictures/ */
+  /** The endpoint of the API to use, default is https://api.PreferredPictures/ */
   endpoint?: string;
 }
 
@@ -31,7 +37,17 @@ interface ClientConstructorParameters {
 type ChooseUrlParameters = {
   /** A list of choices of which a selection should be made */
   choices: string[];
-  /** The tournament of which this API call is a part */
+  /** An optional prefix to prepend to all of the choices */
+  choices_prefix?: string;
+  /** An optional suffix to append to all of the choices */
+  choices_suffix?: string;
+  /** An optional list of destination URLs which are paired with each choice */
+  destinations?: string[];
+  /** An optional prefix to prepend to all of the destination URLs */
+  destinations_prefix?: string;
+  /** An optional suffix to append to all of the destination URLs */
+  destinations_suffix?: string;
+  /** The tournament of which this API call is a member */
   tournament: string;
   /**
    * The amount of time in seconds after a choice is made that an action
@@ -40,18 +56,38 @@ type ChooseUrlParameters = {
   ttl?: number;
   /** The amount of time in seconds that the request signature is valid */
   expirationTtl?: number;
-  /** An optional prefix to prepend to all of the choices */
-  prefix?: string;
-  /** An optional suffix to append to all of the choices */
-  suffix?: string;
+  /** Indicate that the result should be returned as JSON, rather than a HTTP redirect*/
+  json?: boolean;
+  /**
+   * Indicate that the user should be redirected to the destination URL
+   * from a previously chosen option associated with the same tournament
+   * and unique id.
+   */
+  go?: boolean;
+  /** An optional unique identifier that is used to correlate choices and actions.
+   *
+   * If it is not specified a UUID v4 will be generated.
+   */
+  uid?: string;
+
+  /**
+   * Produce a limited signature over all fields except
+   * uid, expiration, json, go.
+   */
+  limited_signature?: boolean;
 };
 
 /** The order that fields should be included in the signature */
 const ChooseUrlSigningOrder: Array<keyof ChooseUrlRequestParams> = [
-  "choices",
+  "choices_prefix",
+  "choices_suffix",
+  "choices[]",
+  "destinations_prefix",
+  "destinations_suffix",
+  "destinations[]",
   "expiration",
-  "prefix",
-  "suffix",
+  "go",
+  "json",
   "tournament",
   "ttl",
   "uid",
@@ -61,7 +97,7 @@ export default class PreferredPictures {
   private readonly identity: string;
   private readonly secretKey: string;
   private readonly maxChoices: number = 35;
-  private readonly endpoint: string = "https://api.preferred.pictures";
+  private readonly endpoint: string = "https://api.preferred-pictures.com";
 
   /**
    *
@@ -80,7 +116,7 @@ export default class PreferredPictures {
   }
 
   /**
-   * Build a URL for a call to /choose-url of the Preferred.pictures API
+   * Build a URL for a call to /choose of the PreferredPictures API
    *
    */
   createChooseUrl(params: ChooseUrlParameters) {
@@ -101,26 +137,61 @@ export default class PreferredPictures {
     }
 
     const request_params: ChooseUrlRequestParams = {
-      choices: params.choices.join(","),
       tournament: params.tournament,
       expiration: (
         Math.ceil(Date.now() / 1000) + params.expirationTtl
       ).toString(10),
-      uid: uuidv4(),
+      uid: params.uid != null ? params.uid : uuidv4(),
     };
+
+    request_params["choices[]"] = params.choices;
+
     if (params.ttl != null) {
       request_params.ttl = params.ttl.toString(10);
     }
-    if (params.prefix != null) {
-      request_params.prefix = params.prefix;
+    if (params.choices_prefix != null) {
+      request_params.choices_prefix = params.choices_prefix;
     }
-    if (params.suffix != null) {
-      request_params.suffix = params.suffix;
+    if (params.choices_suffix != null) {
+      request_params.choices_suffix = params.choices_suffix;
+    }
+
+    if (params.destinations != null) {
+      request_params["destinations[]"] = params.destinations;
+    }
+    if (params.destinations_prefix != null) {
+      request_params.destinations_prefix = params.destinations_prefix;
+    }
+    if (params.destinations_suffix != null) {
+      request_params.destinations_suffix = params.destinations_suffix;
+    }
+
+    if (params.go) {
+      request_params.go = "true";
+    }
+    if (params.json) {
+      request_params.json = "true";
+    }
+
+    if (params.limited_signature) {
+      request_params.limited_signature = "true";
     }
 
     // Now create the signature.
-    const signing_string = ChooseUrlSigningOrder.map((v) => request_params[v])
+    const signing_string = ChooseUrlSigningOrder.filter((field_name) => {
+      if (params.limited_signature) {
+        return !(
+          field_name === "uid" ||
+          field_name === "expiration" ||
+          field_name === "json" ||
+          field_name === "go"
+        );
+      }
+      return true;
+    })
+      .map((v) => request_params[v])
       .filter((v) => v != null)
+      .map((v) => (Array.isArray(v) ? v.join(",") : v))
       .join("/");
 
     const signature = crypto
@@ -134,6 +205,6 @@ export default class PreferredPictures {
       signature: signature,
     });
 
-    return `${this.endpoint}/choose-url?${query}`;
+    return `${this.endpoint}/choose?${query}`;
   }
 }
