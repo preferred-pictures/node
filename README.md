@@ -1,7 +1,11 @@
 # PreferredPictures Node.js Client Library
 
-The [PreferredPictures](https://PreferredPictures) Node library provides a convenient way to call the
-[PreferredPictures](https://PreferredPictures) API for applications.
+The [PreferredPictures](https://preferred.pictures) Node library provides a convenient way to call the
+PreferredPictures API.
+
+[View the full documentation about the PreferredPicture's API](https://docs.preferred.pictures/api-sdks/api)
+
+[Learn more about what PreferredPictures can do.](https://docs.preferred.pictures/)
 
 ## Installation
 
@@ -54,7 +58,7 @@ const choiceUrl = pp.createChooseUrl({
 
 // The URL returned will appear to be something like:
 //
-// https://api.PreferredPictures/choose-url?choices=red%2Cgreen%2Cblue&tournament=testing&expiration=[EXPIRATION]&uid=[UNIQUEID]&ttl=600&prefix=https%3A%2F%2Fexample.com%2Fjacket-&suffix=.jpg&identity=test-identity&signature=[SIGNATURE]
+// https://api.preferred.pictures/choose-url?choices=red%2Cgreen%2Cblue&tournament=testing&expiration=1597000373&uid=135a0ff2-b49d-422a-984b-b5aef29637f0&ttl=600&identity=test-identity&signature=f4329ac7956d060e8560e7bdaa5d7fb6c849a87d3157f6f2aeeb63a7b9b11da0
 //
 // which should be placed where it is needed in your application or
 // templates.
