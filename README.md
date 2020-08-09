@@ -5,6 +5,8 @@ PreferredPictures API.
 
 [View the full documentation about the PreferredPicture's API](https://docs.preferred.pictures/api-sdks/api)
 
+The documentation of this module is available at: [https://preferred-pictures.github.io/node/](https://preferred-pictures.github.io/node/)
+
 [Learn more about what PreferredPictures can do.](https://docs.preferred.pictures/)
 
 ## Installation
@@ -21,8 +23,8 @@ The package needs to be configured with your account's identity and
 secret key, which is available in the PreferredPictures interface.
 
 ```js
-const PreferredPictures = require("@preferred-pictures/client");
-const pp = new PreferredPictures({
+const PreferredPicturesClient = require("@preferred-pictures/client");
+const pp = new PreferredPicturesClient({
   // Obtain your account's values by
   // signing into PreferredPictures.
   identity: "test-identity",
