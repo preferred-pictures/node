@@ -5,7 +5,7 @@ import * as qs from "querystring";
 /** The algorithm to use for creating HMAC signatures */
 const HMAC_ALGO = "sha256";
 
-interface ChooseUrlRequestParams {
+type ChooseUrlRequestParams = {
   "choices[]"?: string[];
   choices_prefix?: string;
   choices_suffix?: string;
@@ -19,62 +19,6 @@ interface ChooseUrlRequestParams {
   go?: string;
   json?: string;
   limited_signature?: string;
-}
-
-interface ClientConstructorParameters {
-  /** The identity that should be used for API calls generated */
-  identity: string;
-  /** The secret key of the identity that should be used to generated signatures */
-  secretKey: string;
-  /** The maximum number of choices to allow, default 35 */
-  maxChoices?: number;
-  /** The endpoint of the API to use, default is https://api.PreferredPictures/ */
-  endpoint?: string;
-}
-
-/** A set of parameters for generating calls to /choose-url
- */
-type ChooseUrlParameters = {
-  /** A list of choices of which a selection should be made */
-  choices: string[];
-  /** An optional prefix to prepend to all of the choices */
-  choices_prefix?: string;
-  /** An optional suffix to append to all of the choices */
-  choices_suffix?: string;
-  /** An optional list of destination URLs which are paired with each choice */
-  destinations?: string[];
-  /** An optional prefix to prepend to all of the destination URLs */
-  destinations_prefix?: string;
-  /** An optional suffix to append to all of the destination URLs */
-  destinations_suffix?: string;
-  /** The tournament of which this API call is a member */
-  tournament: string;
-  /**
-   * The amount of time in seconds after a choice is made that an action
-   * can be recorded.
-   */
-  ttl?: number;
-  /** The amount of time in seconds that the request signature is valid */
-  expirationTtl?: number;
-  /** Indicate that the result should be returned as JSON, rather than a HTTP redirect*/
-  json?: boolean;
-  /**
-   * Indicate that the user should be redirected to the destination URL
-   * from a previously chosen option associated with the same tournament
-   * and unique id.
-   */
-  go?: boolean;
-  /** An optional unique identifier that is used to correlate choices and actions.
-   *
-   * If it is not specified a UUID v4 will be generated.
-   */
-  uid?: string;
-
-  /**
-   * Produce a limited signature over all fields except
-   * uid, expiration, json, go.
-   */
-  limited_signature?: boolean;
 };
 
 /** The order that fields should be included in the signature */
@@ -93,18 +37,39 @@ const ChooseUrlSigningOrder: Array<keyof ChooseUrlRequestParams> = [
   "uid",
 ];
 
-export default class PreferredPictures {
+export default class PreferredPicturesClient {
   private readonly identity: string;
   private readonly secretKey: string;
   private readonly maxChoices: number = 35;
   private readonly endpoint: string = "https://api.preferred-pictures.com";
 
   /**
+   * Create a new PreferredPicturesClient instance using
+   * an identity and the secret API key associated with that
+   * identity.
    *
-   * @param identity The identity to use when creating requests
-   * @param secret_key The secret key to use to create HMAC signatures
+   * Example:
+   *
+   * ```js
+   * import PreferredPicturesClient from '@preferred-pictures/client';
+   * const pp = new PreferredPicturesClient({
+   *     // Obtain your account's values by
+   *     // signing into PreferredPictures.
+   *     identity: "test-identity",
+   *     secretKey: "secret123456",
+   * });
+   * ```
    */
-  constructor(params: ClientConstructorParameters) {
+  constructor(params: {
+    /** The identity that should be used for API calls generated */
+    identity: string;
+    /** The secret key of the identity that should be used to generated signatures */
+    secretKey: string;
+    /** The maximum number of choices to allow, default 35 */
+    maxChoices?: number;
+    /** The endpoint of the API to use, default is https://api.PreferredPictures/ */
+    endpoint?: string;
+  }) {
     this.identity = params.identity;
     this.secretKey = params.secretKey;
     if (params.maxChoices != null) {
@@ -116,10 +81,70 @@ export default class PreferredPictures {
   }
 
   /**
-   * Build a URL for a call to /choose of the PreferredPictures API
+   * Build a URL for a call to `/choose` of the PreferredPictures API,
+   * using the passed parameters.
    *
+   * @returns A URL that when requested will return the result of the
+   * API call.
+   *
+   * Example:
+   * ```js
+   * // A simple example of choosing between three different
+   * // URLs.
+   * const simpleChoiceUrl = pp.createChooseUrl({
+   *     choices: [
+   *         "https://example.com/image-red.jpg",
+   *         "https://example.com/image-green.jpg",
+   *         "https://example.com/image-blue.jpg",
+   *     ],
+   *     // Change the tournament as necessary to represent
+   *     // different needs.
+   *     tournament: "testing",
+   * });
+   * ```
    */
-  createChooseUrl(params: ChooseUrlParameters) {
+  createChooseUrl(params: {
+    /** A list of choices from which a selection should be made.  Typically these are URLs.  */
+    choices: string[];
+    /** An optional prefix to prepend to all of the choices */
+    choices_prefix?: string;
+    /** An optional suffix to append to all of the choices */
+    choices_suffix?: string;
+    /** An optional list of destination URLs which are paired with each choice */
+    destinations?: string[];
+    /** An optional prefix to prepend to all of the destination URLs */
+    destinations_prefix?: string;
+    /** An optional suffix to append to all of the destination URLs */
+    destinations_suffix?: string;
+    /** The tournament of which this API call is a member */
+    tournament: string;
+    /**
+     * The amount of time in seconds after a choice is made that an action
+     * can be recorded.
+     */
+    ttl?: number;
+    /** The amount of time in seconds that the request signature is valid */
+    expirationTtl?: number;
+    /** Indicate that the result should be returned as JSON, rather than a HTTP redirect*/
+    json?: boolean;
+    /**
+     * Indicate that the user should be redirected to the destination URL
+     * from a previously chosen option associated with the same tournament
+     * and unique id.
+     */
+    go?: boolean;
+    /** An optional unique identifier that is used to correlate choices and actions.
+     *
+     * If it is not specified a UUID v4 will be generated.
+     */
+    uid?: string;
+
+    /**
+     * Produce a limited signature over all fields except
+     * uid, expiration, json, go.
+     */
+    limited_signature?: boolean;
+  }) {
     if (params.expirationTtl == null) {
       // Default the request to have a valid time of 3600 from now.
       params.expirationTtl = 3600;

@@ -5,8 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
+    "docs": "rm -rf docs && typedoc --mode file --excludePrivate --excludeProtected --out docs --readme none --entryPoint 'PreferredPicturesClient' --excludeNotExported src/index.ts",
     "test": "mocha -t 10000 -r ts-node/register test/test.ts",
-    "prepublish": "tsc"
+    "prepublish": "npm run build && npm run docs"
   },
   "repository": {
     "type": "git",
